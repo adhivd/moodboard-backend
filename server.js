@@ -131,6 +131,64 @@ app.post("/savePage/:pageId", (req, res) => {
         })
 });
 
+
+app.get("/checkHandleIsFree/:handle", (req, res) => {
+    // figure out how to get params from this request?
+    const handle = req.params.handle
+    // const userInfo = "";
+    // const userInfo = ref(database, 'userCollection/' + userId);
+
+    const dbRef = ref(database);
+    get(child(dbRef, 'handleStore/' + handle))
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const userInfo = snapshot.val();
+                res.send(userInfo)
+                console.log("handle is not free:", userInfo)
+            } 
+            else {
+                res.send("handle is free")
+                console.log("handle is free")
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+});
+
+app.post("/createHandle", (req, res) => {
+    // figure out how to get params from this request?
+    console.log("START CREATE HANDLE ＠", req.body)
+
+    // get all request params from body
+    const userId = req.body.userId
+    const handle = req.body.handle
+
+    let handleUpdate = {
+        handle: handle,
+        userId: userId
+    }
+
+    set(ref(database, 'userCollection/' + userId), {
+        "handle": handle,
+    });
+
+    const updates = {};
+    updates['handleStore/' + handle] = userId;
+    // updates['userCollection/' + userId + '/handle'] = handle;
+    console.log("in theory. handle created");
+    update(ref(database), updates)
+        .then((r) => {
+            console.log("update success")
+            res.send("success")
+        })
+        .catch((e) => {
+            console.log("error saving data", e)
+        })
+});
+
+
+
 const PORT = process.env.PORT || 8080; // Use this instead of hardcoding it like before
 
 app.listen(PORT, () => {
