@@ -156,6 +156,7 @@ app.get("/checkHandleIsFree/:handle", (req, res) => {
         });
 });
 
+
 app.post("/createHandle", (req, res) => {
     // figure out how to get params from this request?
     console.log("START CREATE HANDLE ＠", req.body)
@@ -187,6 +188,31 @@ app.post("/createHandle", (req, res) => {
         })
 });
 
+
+app.get("/getUserId/:handle", (req, res) => {
+    // figure out how to get params from this request?
+    const handle = req.params.handle
+    // const userInfo = "";
+    // const userInfo = ref(database, 'userCollection/' + userId);
+    console.log("/getUserId/:handle request 🍻")
+
+    const dbRef = ref(database);
+    get(child(dbRef, 'handleStore/' + handle))
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                const userInfo = snapshot.val();
+                res.send(userInfo)
+                console.log("info sent:", userInfo)
+            } 
+            else {
+                res.send("handle does not exist")
+                console.log("handle does not exist")
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+});
 
 
 const PORT = process.env.PORT || 8080; // Use this instead of hardcoding it like before
