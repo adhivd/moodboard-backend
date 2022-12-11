@@ -1,9 +1,14 @@
 import { initializeApp } from "firebase/app";
+import { getStorage, ref as storeRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { equalTo, getDatabase, set, ref, get, child, update } from "firebase/database";
 
 import express from "express";
 import cors from "cors"; // Add this to the list of imports
 import dotenv from "dotenv";
+import multer from "multer";
+import bodyParser from "body-parser"
+// import filesUpload from "./middleware.js";
+
 
 dotenv.config();
 
@@ -26,13 +31,22 @@ const firebaseConfig = {
   
   // Initialize Realtime Database and get a reference to the service
   const database = getDatabase(appFire);
+  const storage = getStorage();
+
 
 
   const app = express();
 
-  app.use(express.json());
-  app.use(cors()); // Use the cors middleware
-  app.use(express.urlencoded({ extended: false }));
+// app.use(bodyParser.json({limit: '50mb'}));
+// app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+// app.use(bodyParser.urlencoded({extended:true, limit:'50mb'})); 
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 1000000}));
+
+app.use(express.json());
+app.use(cors()); // Use the cors middleware
+const memoStorage = multer.memoryStorage();
+const upload = multer({ memoStorage });
   
   app.get("/", (req, res) => {
     res.send("working fine");
@@ -60,6 +74,44 @@ const firebaseConfig = {
             console.error(error);
         });
 });
+
+// save an image that a user has uploaded
+app.post("/saveImage", upload.single("file"),(req, res) => {
+
+    console.log("START SAVE IMAGE", req.body)
+    const storageRef = storeRef(storage, 'some-child');
+
+    const file = req.file;
+    const whoah = req.whoah;
+    console.log("FILE", file, req.body.whoah)
+
+    let fileNameEnd = "";
+
+    if(req.body.mimetype == 'image/jpeg') {
+        fileNameEnd = ".jpg"
+    }
+    else if(req.body.mimetype == 'image/png') {
+        fileNameEnd = ".png"
+    }
+
+    let fileName = "images/" + req.body.pageId + "/" + req.body.blockId + fileNameEnd
+
+    // const imageRef = storeRef(storage, file.originalname);
+    const imageRef = storeRef(storage, fileName);
+    const metatype = { contentType: file.mimetype, name: fileName };
+
+    uploadBytes(imageRef, file.buffer, metatype)
+        .then((snapshot) => {
+            console.log("uploaded image")
+            getDownloadURL(snapshot.ref).then((downloadURL) => {
+                console.log('File available at', downloadURL);
+                res.send(downloadURL);
+              });
+        })
+        .catch((error) => console.log(error.message));
+
+});
+
 
 app.get("/getPage/:pageId", (req, res) => {
     // figure out how to get params from this request?
