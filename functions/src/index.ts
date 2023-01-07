@@ -1,17 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getStorage, ref as storeRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { equalTo, getDatabase, set, ref, get, child, update } from "firebase/database";
+import {  getDatabase, set, ref, get, child, update } from "firebase/database";
 
-import express from "express";
-import cors from "cors"; // Add this to the list of imports
-import dotenv from "dotenv";
-import multer from "multer";
-import bodyParser from "body-parser"
+import * as functions from "firebase-functions";
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const multer = require('multer');
+const bodyParser = require('body-parser');
+
 // import filesUpload from "./middleware.js";
 
-
 dotenv.config();
-
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -44,15 +44,15 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 1000000}));
 
 app.use(express.json());
-app.use(cors({origin: true})); // Use the cors middleware
+app.use(cors({ origin: true })); // Use the cors middleware
 const memoStorage = multer.memoryStorage();
 const upload = multer({ memoStorage });
   
-  app.get("/", (req, res) => {
+  app.get("/", (req:any, res:any) => {
     res.send("working fine");
   });
 
-  app.get("/getUser/:userId", (req, res) => {
+  app.get("/getUser/:userId", (req:any, res:any) => {
     // figure out how to get params from this request?
     const userId = req.params.userId
     // const userInfo = "";
@@ -76,13 +76,13 @@ const upload = multer({ memoStorage });
 });
 
 // save an image that a user has uploaded
-app.post("/saveImage", upload.single("file"),(req, res) => {
+app.post("/saveImage", upload.single("file"),(req:any, res:any) => {
 
     console.log("START SAVE IMAGE", req.body)
-    const storageRef = storeRef(storage, 'some-child');
+    // const storageRef = storeRef(storage, 'some-child');
 
     const file = req.file;
-    const whoah = req.whoah;
+    // const whoah = req.whoah;
     console.log("FILE", file, req.body.whoah)
 
     let fileNameEnd = "";
@@ -113,7 +113,7 @@ app.post("/saveImage", upload.single("file"),(req, res) => {
 });
 
 
-app.get("/getPage/:pageId", (req, res) => {
+app.get("/getPage/:pageId", (req:any, res:any) => {
     // figure out how to get params from this request?
     const pageId = req.params.pageId
     const dbRef = ref(database);
@@ -137,7 +137,7 @@ app.get("/getPage/:pageId", (req, res) => {
         });
 });
 
-app.post("/savePage/:pageId", (req, res) => {
+app.post("/savePage/:pageId", (req:any, res:any) => {
     // figure out how to get params from this request?
     console.log("START SAVE REQ")
     const pageId = req.params.pageId
@@ -148,13 +148,14 @@ app.post("/savePage/:pageId", (req, res) => {
         name: reqBody.name,
         userId: reqBody.userId,
         blockMap: reqBody.blockMap,
+        auth: reqBody.auth
     });
 
     res.send("success")
 });
   
   
-  app.post("/createPage", (req, res) => {
+  app.post("/createPage", (req:any, res:any) => {
     // figure out how to get params from this request?
     console.log("START CREATE PAGE 📜", req.body)
 
@@ -163,14 +164,17 @@ app.post("/savePage/:pageId", (req, res) => {
     const pageName = req.body.name
     const userId = req.body.userId
     const blockMap = req.body.blockMap
+    const auth = req.body.auth
+
 
     let pagesUpdate = {
         name: pageName,
         userId: userId,
         blockMap: blockMap,
+        auth: auth
     }
 
-    const updates = {};
+    const updates: any = {};
     updates['/pages/' + pageId] = pagesUpdate;
     updates['/userCollection/' + userId + '/pages/' + pageId] = pageName;
     update(ref(database), updates)
@@ -184,7 +188,7 @@ app.post("/savePage/:pageId", (req, res) => {
 });
 
 
-app.get("/checkHandleIsFree/:handle", (req, res) => {
+app.get("/checkHandleIsFree/:handle", (req:any, res:any) => {
     // figure out how to get params from this request?
     const handle = req.params.handle
     // const userInfo = "";
@@ -209,7 +213,7 @@ app.get("/checkHandleIsFree/:handle", (req, res) => {
 });
 
 
-app.post("/createHandle", (req, res) => {
+app.post("/createHandle", (req:any, res:any) => {
     // figure out how to get params from this request?
     console.log("START CREATE HANDLE ＠", req.body)
 
@@ -217,16 +221,11 @@ app.post("/createHandle", (req, res) => {
     const userId = req.body.userId
     const handle = req.body.handle
 
-    let handleUpdate = {
-        handle: handle,
-        userId: userId
-    }
-
     set(ref(database, 'userCollection/' + userId), {
         "handle": handle,
     });
 
-    const updates = {};
+    const updates: any = {};
     updates['handleStore/' + handle] = userId;
     // updates['userCollection/' + userId + '/handle'] = handle;
     console.log("in theory. handle created");
@@ -241,7 +240,7 @@ app.post("/createHandle", (req, res) => {
 });
 
 
-app.get("/getUserId/:handle", (req, res) => {
+app.get("/getUserId/:handle", (req:any, res:any) => {
     // figure out how to get params from this request?
     const handle = req.params.handle
     // const userInfo = "";
@@ -267,16 +266,12 @@ app.get("/getUserId/:handle", (req, res) => {
 });
 
 
-const PORT = process.env.FB_PORT || 8080; // Use this instead of hardcoding it like before
+// const PORT = process.env.FB_PORT || 8080; // Use this instead of hardcoding it like before
 
-app.listen(PORT, () => {
-console.log(`Server listening on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+// console.log(`Server listening on port ${PORT}`);
+// });
 
 
-//   // [START rtdb_write_new_user]
-// function updateHandle(userId, handle) {
-//     database.ref('users/' + userId).set({
-//       handle: handle,
-//     });
-// }
+
+exports.app = functions.https.onRequest(app);
