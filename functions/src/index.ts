@@ -9,8 +9,6 @@ const dotenv = require('dotenv');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 
-// import filesUpload from "./middleware.js";
-
 dotenv.config();
 
 // Your web app's Firebase configuration
@@ -87,10 +85,17 @@ app.post("/saveImage", upload.single("file"),(req:any, res:any) => {
 
     let fileNameEnd = "";
 
-    if(req.body.mimetype == 'image/jpeg') {
+    // if(req.body.mimetype == 'image/jpeg') {
+    //     fileNameEnd = ".jpg"
+    // }
+    // else if(req.body.mimetype == 'image/png') {
+    //     fileNameEnd = ".png"
+    // }
+
+    if(req.file.mimetype == 'image/jpeg') {
         fileNameEnd = ".jpg"
     }
-    else if(req.body.mimetype == 'image/png') {
+    else if(req.file.mimetype == 'image/png') {
         fileNameEnd = ".png"
     }
 
