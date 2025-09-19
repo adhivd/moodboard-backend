@@ -38,8 +38,11 @@ const firebaseConfig = {
 // app.use(bodyParser.json({limit: '50mb'}));
 // app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 // app.use(bodyParser.urlencoded({extended:true, limit:'50mb'})); 
+
+
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true, parameterLimit: 1000000}));
+global.XMLHttpRequest = require("xhr2");
 
 app.use(express.json());
 app.use(cors({ origin: true })); // Use the cors middleware
@@ -74,30 +77,32 @@ const upload = multer({ memoStorage });
 });
 
 // save an image that a user has uploaded
-app.post("/saveImage", upload.single("file"),(req:any, res:any) => {
-
-    console.log("START SAVE IMAGE", req.body)
+app.post("/saveImage", upload.single("file"), (req:any, res:any) => {
     // const storageRef = storeRef(storage, 'some-child');
 
     const file = req.file;
     // const whoah = req.whoah;
-    console.log("FILE", file, req.body.whoah)
+    console.log("FILE", file)
+    console.log("FILE", req.file)
+    const obj = JSON.parse(JSON.stringify(req.body))
+    console.log("FILE", obj)
+    console.log("req", req);
 
     let fileNameEnd = "";
 
-    // if(req.body.mimetype == 'image/jpeg') {
-    //     fileNameEnd = ".jpg"
-    // }
-    // else if(req.body.mimetype == 'image/png') {
-    //     fileNameEnd = ".png"
-    // }
-
-    if(req.file.mimetype == 'image/jpeg') {
+    if(req.body.mimetype == 'image/jpeg') {
         fileNameEnd = ".jpg"
     }
-    else if(req.file.mimetype == 'image/png') {
+    else if(req.body.mimetype == 'image/png') {
         fileNameEnd = ".png"
     }
+
+    // if(req.file.mimetype == 'image/jpeg') {
+    //     fileNameEnd = ".jpg"
+    // }
+    // else if(req.file.mimetype == 'image/png') {
+    //     fileNameEnd = ".png"
+    // }
 
     let fileName = "images/" + req.body.pageId + "/" + req.body.blockId + fileNameEnd
 
@@ -179,9 +184,15 @@ app.post("/savePage/:pageId", (req:any, res:any) => {
         auth: auth
     }
 
+    const creationDate = new Date().toISOString();
+    const pageMeta = {
+        name: pageName,
+        createdAt: creationDate
+    };
+
     const updates: any = {};
     updates['/pages/' + pageId] = pagesUpdate;
-    updates['/userCollection/' + userId + '/pages/' + pageId] = pageName;
+    updates['/userCollection/' + userId + '/pages/' + pageId] = pageMeta;
     update(ref(database), updates)
         .then((r) => {
             console.log("update success")

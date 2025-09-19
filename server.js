@@ -13,6 +13,15 @@ import bodyParser from "body-parser"
 dotenv.config();
 
 
+var admin = require("firebase-admin");
+
+// var serviceAccount = require("moodboards-b8265-firebase-adminsdk-vp3yg-f447ef1f2d.json");
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: "https://moodboards-b8265-default-rtdb.firebaseio.com"
+// });
+
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
